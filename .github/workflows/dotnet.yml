@@ -1,35 +1,3 @@
-# name: .NET CI Pipeline
-
-# on:
-#   push:
-#     branches:
-#       - master
-#       - develop
-#       - feature/*
-#   pull_request:
-#     branches:
-#       - master
-
-# jobs:
-#   build-and-test:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-
-#       - name: Setup .NET
-#         uses: actions/setup-dotnet@v4
-#         with:
-#           dotnet-version: 9.0.x
-
-#       - name: Restore dependencies
-#         run: dotnet restore Consumer.Contact.Create.sln
-
-#       - name: Build
-#         run: dotnet build Consumer.Contact.Create.sln --configuration Release
-
-#       - name: Run Unit Tests
-#         run: dotnet test Consumer.Contact.Create.Tests/Consumer.Contact.Create.Tests.csproj --configuration Release --logger "console;verbosity=detailed"
-
 name: .NET CI Pipeline
 
 on:
@@ -110,11 +78,11 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/criar-contatos:latest -f CriarContatos.Api/Dockerfile .
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/consumer-criar-contatos:latest -f Consumer.Contact.Create.Worker/Dockerfile .
 
       - name: Push Docker image to ACR
         run: |
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/criar-contatos:latest
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/consumer-criar-contatos:latest
 
       - name: Set AKS context
         uses: azure/aks-set-context@v3
@@ -125,29 +93,29 @@ jobs:
       - name: Update Kubernetes Resources
         run: |
           # Aplica ConfigMap (cria ou atualiza se necessário)
-          kubectl apply -f CriarContatos.Api/k8s/criar-contatos-configmap.yml
+          kubectl apply -f Consumer.Contact.Create.Worker/k8s/consumer-criar-contatos-configmap.yml
 
           # Aplica Deployment (cria ou atualiza se necessário)
-          kubectl apply -f CriarContatos.Api/k8s/criar-contatos-deployment.yml
+          kubectl apply -f Consumer.Contact.Create.Worker/k8s/consumer-criar-contatos-deployment.yml
 
           # Aplica PVC e PV (apenas cria ou atualiza, sem deletar)
-          kubectl apply -f CriarContatos.Api/k8s/criar-contatos-persistent-volume.yml
-          kubectl apply -f CriarContatos.Api/k8s/criar-contatos-persistent-volume-claim.yml
+          kubectl apply -f Consumer.Contact.Create.Worker/k8s/consumer-criar-contatos-persistent-volume.yml
+          kubectl apply -f Consumer.Contact.Create.Worker/k8s/consumer-criar-contatos-persistent-volume-claim.yml
 
           # Aplica Service (cria ou atualiza se necessário)
-          kubectl apply -f CriarContatos.Api/k8s/criar-contatos-service.yml
+          kubectl apply -f Consumer.Contact.Create.Worker/k8s/consumer-criar-contatos-service.yml
 
           # Espera o rollout do Deployment para garantir que a atualização foi bem-sucedida
-          kubectl rollout status deployment/criar-contatos-deployment
+          kubectl rollout status deployment/consumer-criar-contatos-deployment
       
       - name: Update AKS Deployment with new image
         uses: azure/k8s-deploy@v1
         with:
           manifests: |
-            CriarContatos.Api/k8s/criar-contatos-deployment.yml
-            CriarContatos.Api/k8s/criar-contatos-service.yml
+            Consumer.Contact.Create.Worker/k8s/consumer-criar-contatos-deployment.yml
+            Consumer.Contact.Create.Worker/k8s/consumer-criar-contatos-service.yml
           images: |
-            ${{ secrets.ACR_LOGIN_SERVER }}/criar-contatos:latest
+            ${{ secrets.ACR_LOGIN_SERVER }}/consumer-criar-contatos:latest
           imagepullsecrets: |
             acr-auth
 
