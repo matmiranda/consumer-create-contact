@@ -5,7 +5,7 @@ EXPOSE 80
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["Consumer.Contact.Create.Worker/Consumer.Contact.Create.Worker.csproj", "Consumer.Contact.Create.Worker/"]
-COPY ["Consumer.Contact.Create.Application/Consumer.Contact.Create.Domain.csproj", "Consumer.Contact.Create.Application/"]
+COPY ["Consumer.Contact.Create.Application/Consumer.Contact.Create.Application.csproj", "Consumer.Contact.Create.Application/"]
 COPY ["Consumer.Contact.Create.Domain/Consumer.Contact.Create.Domain.csproj", "Consumer.Contact.Create.Domain/"]
 COPY ["Consumer.Contact.Create.Infrastructure/Consumer.Contact.Create.Infrastructure.csproj", "Consumer.Contact.Create.Infrastructure/"]
 RUN dotnet restore "Consumer.Contact.Create.Worker/Consumer.Contact.Create.Worker.csproj"
